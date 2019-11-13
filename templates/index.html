@@ -18,29 +18,142 @@
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
 
+    <style>
+      /* The Modal (background) */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      }
+
+      /* Modal Content */
+      .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+
+      /* The Close Button */
+      .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+      }
+    </style>
+
   </head>
 
   <body>
-
-    <div class="container theme-showcase" role="main">
+    <div class="container theme-showcase" role="main" id="container">
 
       <div class="jumbotron">
         <h1>Guest Book</h1>
-        <a type="button" class="btn btn-link" href="{{ url_for('sign') }}">Sign the Guest Book</a>
+        <!-- <a type="button" class="btn btn-link" href="{{ url_for('sign') }}">Sign the Guest Book</a> -->
+        <button type="button" id="show_sign_form">Sign the guest book</button>&nbsp;
+          <a type="button" class="btn btn-link" href="{{ url_for('login') }}">Login</a>&nbsp;
+          <a type="button" class="btn btn-link" href="{{ url_for('sign_up') }}">Sign up</a>
       </div>
 
       {% for r in result %}
-      <form method="post" action="/delete_red/?id={{ r.id }}">
-        <div class="page-header">
-          <h1>{{ r.name }}</h1><button type="submit" name="delete">Delete comment</button>
-        </div>
-        <div class="well">
-          <p>{{ r.comment }}</p>
-        </div>
+      <!-- <form method="post" action="/delete_red/?id={{ r.id }}"> -->
+      <form action="" id="com_form">
+          <div class="page-header">
+            <h1>{{ r.name }}</h1><!-- <a id="delete_com" name="delete" href=#>Delete comment</a> -->
+            <button data-id="{{ r.id }}" type="button" class="delete_com">Delete comment</button>
+          </div>
+          <div class="well">
+            <p>{{ r.comment }}</p>
+          </div>
       </form>
       {% endfor %}
 
-    </div> <!-- /container -->
+    </div><!-- /container -->
+
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+
+      <!-- Modal content -->
+      <div class="modal-content" id="modalCont">
+        <span class="close">&times;</span>
+
+      </div>
+
+    </div>
+
+
+
+
+
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+      $(document).ready(function(){
+        $(".delete_com").click(function(){
+          $.ajax({
+            type: 'GET',
+            url: "/delete_ajax",
+            data: {com_id: $(this).data("id")},
+            //eftaige to datatype. to default edw einai json epeidh etsi to epistrefei h python
+            //dataType: "application/json",
+            //se ayto to epipedo tha valw .load() apo to jquery
+            success: function(data){
+              debugger;
+              if(data.status == "success"){
+                $("#container").load("/");
+              }
+            }
+          });
+        });
+      });
+    </script>
+
+    <script>
+      // Get the modal
+      var modal = document.getElementById("myModal");
+      var modalCont = document.getElementById("modalCont");
+
+      // Get the button that opens the modal
+      var btn = document.getElementById("show_sign_form");
+
+      // Get the <span> element that closes the modal
+      var span = document.getElementsByClassName("close")[0];
+
+      // When the user clicks the button, open the modal
+      btn.onclick = function() {
+        modal.style.display = "block";
+        $("#modalCont").load("/sign");
+      }
+
+      // When the user clicks on <span> (x), close the modal
+      span.onclick = function() {
+        modal.style.display = "none";
+      }
+
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
+    </script>
 
   </body>
 </html>

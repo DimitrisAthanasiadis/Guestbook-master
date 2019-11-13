@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 
 # insantiate Flask
 from sqlalchemy import text
 
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 # how sqlalchemy connects to the database
 # connect string configuration "dialect+driver://username:password@host:port/database"
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://sql7311412:WYksFBCrMk@sql7.freemysqlhosting.net/sql7311412'
@@ -22,6 +24,12 @@ class Comments(db.Model):
 	comment = db.Column(db.String(1000))
 
 
+class Users(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	username = db.Column(db.String(20))
+	password = db.Column(db.String(100))
+
+
 # create a route
 @app.route('/')
 def index():
@@ -36,8 +44,8 @@ def sign():
 	return render_template('sign.html')
 
 
-@app.route('/process', methods=['GET', 'POST'])
-def process():
+@app.route('/comment_process', methods=['GET', 'POST'])
+def comment_process():
 	# it takes the name from the form and assigns it to the variable name
 	name = request.form['name']
 	# it takes the comment from the form and assigns it to the variable comment
@@ -52,6 +60,39 @@ def process():
 
 	# redirects to index so it updates
 	return redirect(url_for('index'))
+
+
+@app.route('/login_process', methods=['GET', 'POST'])
+def login_process():
+	username = request.form['username']
+	password = request.form['password']
+
+
+
+
+	return render_template('index.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	return render_template('login.html')
+
+
+@app.route('/sign_up', methods=['GET', 'POST'])
+def sign_up():
+	return render_template('sign_up.html')
+
+
+@app.route('/sign_up_process', methods=['GET', 'POST'])
+def sign_up_process():
+	username = request.form['username']
+	password = request.form['password']
+
+	user = Users(username=username, password=password)
+	db.session.add(user)
+	db.session.commit()
+
+	return redirect('index')
 
 
 # made with redirect method
@@ -72,12 +113,15 @@ def delete_red():
 # uses AJAX to delete
 @app.route('/delete_ajax', methods=['GET', 'POST'])
 def delete_ajax():
-	com_id = request.form.args.get('id')
+	com_id = request.args.get('com_id')
 	query = "delete from comments where id=" + str(com_id)
 	db.engine.execute(query)
 	db.session.commit()
 
-	return
+	return jsonify(status="success")
+
+
+# return redirect(url_for('index'))
 
 
 @app.route('/home', methods=['GET', 'POST'])
