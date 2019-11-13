@@ -1,0 +1,23 @@
+<html>
+<head>
+	<title>Example template</title>
+</head>
+<body>
+	<!--curly brackets and percent symbol is for jinja (default flask language)-->
+	{% if myvar %}
+	<!--the double curly brackets are the sign of the variable-->
+	<h1>The variable I passed in is: {{ myvar }}</h1>
+	{% else %}
+	<h1>No variable passed in</h1>
+	{% endif %}
+
+    <h1>This is the example template</h1>
+    <p>This is a paragraph</p>
+    <a href="https://www.google.gr">This is a link to Google</a>
+	{% for link in links %}
+		<a href="{{ link }}">Here is a link</a>
+	{% endfor %}
+
+    <h3>This is the end of the template</h3>
+</body>
+</html>
