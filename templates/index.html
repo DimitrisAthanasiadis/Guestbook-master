@@ -62,6 +62,10 @@
   </head>
 
   <body>
+    {% if session['logged_in'] %}
+      <span class="w3-padding w3-display-topleft" style="font-weight:bold;color:green">Logged in as
+        {{ session['username'] }}</span>&nbsp;<a type="button" class="btn btn-link" name="logout">Logout</a>
+    {% endif %}
     <div class="container theme-showcase" role="main" id="container">
 
       <div class="jumbotron">
