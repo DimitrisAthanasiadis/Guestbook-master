@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/various_styles.css') }}" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Users list</title>
+</head>
+<body>
+{% extends "layout.html" %}
+{% block content %}
+{% for r in result %}
+    <!-- <form method="post" action="/delete_red/?id={{ r.id }}"> -->
+    {% if r.username != 'admin' %}
+    <form action="" id="users_form">
+        <div class="page-header">
+            <h1>{{ r.username }}</h1>
+            <button data-id="{{ r.id }}" type="button" class="delete_user">Delete user</button>
+        </div>
+    </form>
+    {% endif %}
+{% endfor %}
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+      <script>
+        $(document).ready(function(){
+          $(".delete_user").click(function(){
+            $.ajax({
+              type: 'GET',
+              url: "/delete_user_ajax",
+              data: {u_id: $(this).data("id")},
+              //eftaige to datatype. to default edw einai json epeidh etsi to epistrefei h python
+              //dataType: "application/json",
+              //se ayto to epipedo tha valw .load() apo to jquery
+              success: function(data){
+                debugger;
+                if(data.status == "success"){
+                  //to kanw load sto body giati an to kanw opoudhpote allou tha ksanafortwsei to nav bar mexri na ksanaginei reload
+                  $("body").load("/users_list");
+                }
+              }
+            });
+          });
+        });
+      </script>
+{% endblock %}
+</body>
+</html>

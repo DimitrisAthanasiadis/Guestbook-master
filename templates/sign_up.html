@@ -1,14 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/various_styles.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/various_styles.css') }}" rel="stylesheet">
     <meta charset="UTF-8">
     <title>Sign up</title>
 </head>
 <body>
+{% extends "layout.html" %}
+{% block content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- Categories: success (green), info (blue), warning (yellow), danger (red) -->
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <!-- <strong>Title</strong> --> <strong>{{ message }}</strong>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
     <form method="post" action="sign_up_process">
-        <label>Username:&nbsp;</label><input type="text" id="inputUsername" name="username"/><p></p>
-        <label>Password:&nbsp;</label><input type="password" id="inputPassword" name="password"/><p></p>
+        <label>Username:&nbsp;</label><input type="text" id="inputUsername" name="username" required/><p></p>
+        <label>Password:&nbsp;</label><input type="password" id="inputPassword" name="password" required/><p></p>
         <button type="submit">Sign up</button>
     </form>
+{% endblock %}
 </body>
 </html>
