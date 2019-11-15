@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
-from flask_bcrypt import Bcrypt
+# from flask_bcrypt import Bcrypt
 
 # insantiate Flask
 from sqlalchemy import text
@@ -211,6 +211,18 @@ def display_users():
 			return render_template("users.html", result=result)
 		else:
 			return render_template("you_are_not_admin.html")
+	else:
+		return render_template("login_first.html")
+
+@app.route("/profile/", methods=['GET', 'POST'])
+def profile():
+	if session.get('username') is not None:
+		username = request.args.get('user')
+		query = "select * from users where username='" + str(username) + "'"
+		db.engine.execute(query)
+		db.session.commit()
+
+		return render_template("profile.html", result=query)
 	else:
 		return render_template("login_first.html")
 
