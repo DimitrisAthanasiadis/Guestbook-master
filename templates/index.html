@@ -53,7 +53,7 @@
             {% if session['logged_in'] %}
                 <button type="button" id="show_sign_form" onclick="showModalSign()">Sign the guest book</button>&nbsp
             {% endif %}
-            {% if session['logged_in'] == false %}
+            {% if not session['logged_in'] %}
             <a type="button" class="btn btn-link" href="{{ url_for('login') }}">Login</a>&nbsp;
             <a type="button" class="btn btn-link" href="{{ url_for('sign_up') }}">Sign up</a>
             {% endif %}
@@ -61,16 +61,17 @@
 
         {% for r in result %}
         <!-- <form method="post" action="/delete_red/?id={{ r.id }}"> -->
-        <form action="" id="com_form">
+        <!-- <form method="post" action="/edit_com_process/?com_id={{ r.id }}&com_cont={{ r.comment }}" id="com_form"> -->
+        <form method="post" action="edit_com" id="com_form">
             <div class="page-header">
               <h1>{{ r.name }}</h1><!-- <a id="delete_com" name="delete" href=#>Delete comment</a> -->
-                {% if session['logged_in'] == true and (r.name == session['username'] or session['username'] == 'admin') %}
-                    <button type="button" class="delete_com">Delete comment</button>
-                    <button type="button" class="edit_com" id="edit_com_{{ r.id }}" onclick="showModalEdit(this.id)">Edit comment</button>
+                {% if session['logged_in'] and (r.name == session['username'] or session['username'] == 'admin') %}
+                    <button data-id="{{ r.id }}" type="button" class="delete_com">Delete comment</button>
+                    <button type="button" class="edit_com" id="{{ r.id }}" onclick="editComment(this.id)">Edit comment</button>
                 {% endif %}
             </div>
-            <div class="well" id="com_cont_{{ r.id }}" name="com_cont">
-              <p>{{ r.comment }}</p>
+            <div class="well" name="com_cont">
+              <p id="com_cont_{{ r.id }}">{{ r.comment }}</p>
             </div>
         </form>
         {% endfor %}
@@ -134,8 +135,6 @@
             var comCont = document.getElementById("com_cont");
 
             // Get the button that opens the modal
-            //var btn = document.getElementById("show_sign_form");
-            //debugger;
             var btn = document.getElementById("show_sign_form");
 
             // Get the <span> element that closes the modal
@@ -164,14 +163,21 @@
       </script>
 
     <script>
-        function showModalEdit(btn_id){
+      function editComment(id){
+      var cur_com_cont = document.getElementById("com_cont_"+id).innerHTML
+        window.location.href = "edit_com/?com_id=" + id // + "&com_cont=" + cur_com_cont
+      }
+    </script>
+
+    <!-- <script>
+        function showModalEdit(){
             // Get the modal
             var modal = document.getElementById("myModal");
             var modalCont = document.getElementById("modalCont");
             var comCont = document.getElementById("com_cont");
 
             // Get the button that opens the modal
-            var btn = document.getElementById(btn_id);
+            var btn = document.getElementById("edit_com");
 
             // Get the <span> element that closes the modal
             var span = document.getElementsByClassName("close")[0];
@@ -195,7 +201,7 @@
               }
             }
         }
-    </script>
+    </script> -->
     {% endblock %}
   </body>
 </html>

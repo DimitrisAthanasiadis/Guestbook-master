@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
+from flask_bcrypt import Bcrypt
 
 # insantiate Flask
 from sqlalchemy import text
 
-s = Session()
+sess = Session()
 app = Flask(__name__)
 # how sqlalchemy connects to the database
 # connect string configuration "dialect+driver://username:password@host:port/database"
@@ -13,10 +14,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://sql7311412:WYksFBCrMk@sql7.free
 app.config['SQL_ALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'memcached'
 app.config['SECRET_KEY'] = 'super secret key'
-sess = Session()
+app.config['SESSION_PERMANENT'] = True
 
 # instantiate the database (?)
 db = SQLAlchemy(app)
+logged_in = False
 
 
 # class that is used to create the database
@@ -53,7 +55,7 @@ def comment_process():
 	name = request.form['name']
 	# it takes the comment from the form and assigns it to the variable comment
 	comment = request.form['comment']
-	session['con_cont'] = comment
+	session['com_cont'] = comment
 
 	# instantiates the object-creates row
 	signature = Comments(name=name, comment=comment)
@@ -73,7 +75,6 @@ def login_process():
 	password = request.form.get('password')
 	# exists = bool(Users.query.filter_by(username=username).first())
 	exists = db.session.query(db.session.query(Users).filter_by(username=username).exists()).scalar()
-	logged_in = False
 
 	if exists == True:
 		logged_in = True
@@ -127,16 +128,26 @@ def logout():
 
 	return redirect(url_for('index'))
 
-@app.route('/edit_com')
+@app.route('/edit_com/', methods=['GET', 'POST'])
 def edit_com():
-	render_template("edit.html")
-
-
-@app.route("/edit_com_process", methods=['GET', 'POST'])
-def edit_com_process():
 	com_id = request.args.get('com_id')
-	com_cont = session['com_cont']
-	query = text("update comments set comment = " + str(com_cont) + " where id = " + str(com_id))
+	session['com_id'] = com_id
+	query = text("select * from comments where id=" + str(com_id))
+	result = db.engine.execute(query)
+	db.engine.execute(query)
+	db.session.commit()
+
+	# return redirect(url_for('index'))
+	return render_template("edit.html", result=result)
+
+
+@app.route("/edit_com/edit_com_process", methods=['GET', 'POST'])
+def edit_com_process():
+	# com_id = request.form['com_id']
+	com_id = request.form['com_id']
+	com_cont = request.form['comment']
+
+	query = text("update comments set comment = '" + str(com_cont) + "' where id = " + str(com_id))
 	db.engine.execute(query)
 	db.session.commit()
 
@@ -187,15 +198,21 @@ def users_list():
 		if session['username'] == 'admin':
 			# return redirect(url_for('users_list'))
 			return display_users()
+		else:
+			return render_template('you_are_not_admin.html')
 	else:
-		return render_template('you_are_not_admin.html')
+		return render_template("login_first.html")
 
 @app.route("/display_users", methods=['GET', 'POST'])
 def display_users():
 	if session.get('username') is not None:
-		result = Users.query.all()
-
-		return render_template("users.html", result=result)
+		if session.get('username') == 'admin':
+			result = Users.query.all()
+			return render_template("users.html", result=result)
+		else:
+			return render_template("you_are_not_admin.html")
+	else:
+		return render_template("login_first.html")
 
 
 @app.route('/home', methods=['GET', 'POST'])
@@ -214,3 +231,19 @@ def home():
 # if i call it from command line (which i do), then debug mode is on
 if __name__ == '__main__':
 	app.run(debug=True)
+
+
+
+
+
+
+
+''' from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
+
+hash1 = bcrypt.generate_password_hash('secret')
+hash2 = bcrypt.generate_password_hash('secret')
+
+hash1 == hash2 # False - check out the hashes, they'll have different values!
+hash3 = bcrypt.generate_password_hash('secret', 17) # the second argument lets us increase/decrease the work factor. Default value is 12. '''
