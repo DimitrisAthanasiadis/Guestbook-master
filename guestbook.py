@@ -108,18 +108,23 @@ class RegistrationForm(FlaskForm):
 def login_required(function):
 	@wraps(function)
 	def wrapper():
+		form = LoginForm()
 		if not fl.current_user.is_authenticated:
 			flash("You do not have permission to view this page", "warning")
-			abort(404)
-	return render_template("login_first.html")
+			# abort()
+		return render_template("login.html", form=form)
+	return wrapper
 
 # custom decorator gia na dw an o xrhsths pou tsilimpourdizei einai o admin
 def admin_required(function):
 	@wraps(function)
 	def wrapper():
+		form = LoginForm()
 		if not fl.current_user.is_authenticated or fl.current_user.username == 'admin':
 			flash("You do not have permission to view this page", "warning")
-	return render_template("you_are_not_admin.html")
+			# abort()
+		return render_template("login.html", form=form)
+	return wrapper
 
 
 # create a route
@@ -171,7 +176,7 @@ def user_loader(id):
 	return User.query.get(str(id))
 
 
-@login_manager.request_loader
+'''@login_manager.request_loader
 def request_loader(request):
 	username = request.form.get('username')
 	exists = db.session.query(db.session.query(User).filter_by(username=username).exists()).scalar()
@@ -187,7 +192,7 @@ def request_loader(request):
 	db.session.commit()
 	user.is_authenticated = request.form['password'] == result
 
-	return user
+	return user'''
 
 
 @app.route('/login_process', methods=['POST'])
@@ -361,31 +366,32 @@ def delete_user_ajax():
 @login_required
 @admin_required
 def users_list():
-	if session.get('username') is not None:
-		if session['username'] == 'admin':
+	if fl.current_user is not None:
+		if fl.current_user.username == 'admin':
 			# return redirect(url_for('users_list'))
 			return display_users()
-		else:
+		'''else:
 			return render_template('you_are_not_admin.html')
 	else:
-		return render_template("login_first.html")
+		return render_template("login_first.html")'''
 
 
 @app.route("/display_users", methods=['GET', 'POST'])
 @login_required
 @admin_required
 def display_users():
-	if session.get('username') is not None:
-		if session.get('username') == 'admin':
+	if fl.current_user is not None:
+		if fl.current_user.username == 'admin':
 			result = User.query.all()
 			return render_template("users.html", result=result)
-		else:
+		'''else:
 			return render_template("you_are_not_admin.html")
 	else:
-		return render_template("login_first.html")
+		return render_template("login_first.html")'''
 
 
 @app.route("/profile/", methods=['GET', 'POST'])
+@login_required
 def profile():
 	if session.get('username') is not None:
 		username = request.args.get('user')
