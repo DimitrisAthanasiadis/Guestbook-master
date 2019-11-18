@@ -41,21 +41,21 @@
       {% endwith %}
 
       <!-- <a type="button" class="btn btn-link" name="home" href="{{ url_for('index') }}">Home</a> -->
-      {% if session['logged_in'] %}
+      {% if current_user.is_authenticated %}
         <span class="w3-padding w3-display-topleft" style="font-weight:bold;color:green">Logged in as
-          {{ session['username'] }}</span>&nbsp;<a type="button" class="btn btn-link" name="logout" href="{{ url_for('logout') }}">Logout</a>
+          {{ current_user.username }}</span>&nbsp;<a type="button" class="btn btn-link" name="logout" href="{{ url_for('logout') }}">Logout</a>
       {% endif %}
       <div class="container theme-showcase" role="main" id="container-div">
 
         <div class="jumbotron">
           <h1>Guest Book</h1>
           <!-- <a type="button" class="btn btn-link" href="{{ url_for('sign') }}">Sign the Guest Book</a> -->
-            {% if session['logged_in'] %}
+            {% if current_user.is_authenticated %}
                 <button type="button" id="show_sign_form" onclick="showModalSign()">Sign the guest book</button>&nbsp
             {% endif %}
-            {% if not session['logged_in'] %}
+            {% if not current_user.is_authenticated %}
             <a type="button" class="btn btn-link" href="{{ url_for('login') }}">Login</a>&nbsp;
-            <a type="button" class="btn btn-link" href="{{ url_for('sign_up') }}">Sign up</a>
+            <a type="button" class="btn btn-link" href="{{ url_for('register') }}">Sign up</a>
             {% endif %}
         </div>
 
@@ -65,7 +65,7 @@
         <form method="post" action="edit_com" id="com_form">
             <div class="page-header">
               <h1>{{ r.name }}</h1><!-- <a id="delete_com" name="delete" href=#>Delete comment</a> -->
-                {% if session['logged_in'] and (r.name == session['username'] or session['username'] == 'admin') %}
+                {% if current_user.is_authenticated and (r.name == current_user.username or current_user.username == 'admin') %}
                     <button data-id="{{ r.id }}" type="button" class="delete_com">Delete comment</button>
                     <button type="button" class="edit_com" id="{{ r.id }}" onclick="editComment(this.id)">Edit comment</button>
                 {% endif %}
@@ -130,6 +130,7 @@
       <script>
         function showModalSign(){
             // Get the modal
+            debugger;
             var modal = document.getElementById("myModal");
             var modalCont = document.getElementById("modalCont");
             var comCont = document.getElementById("com_cont");
@@ -143,7 +144,7 @@
             // When the user clicks the button, open the modal
              btn.onclick = function() {
                 modal.style.display = "block";
-                $("#modalCont").empty();
+                //$("#modalCont").empty();
                 $("#modalCont").load("/sign");
              }
 

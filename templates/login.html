@@ -28,7 +28,10 @@
       {% endif %}
     {% endwith %}
 
-    <form method="post" action="login_process">
+    <!-- <form method="post" action="login_process"> -->
+    <form method="post">
+        {{ form.csrf_token }}
+        {{form.name }}
         <label>Username:&nbsp;</label><input type="text" id="inputUsername" name="username" required/><p></p>
         <label>Password:&nbsp;</label><input type="password" id="inputPassword" name="password" required/><p></p>
         <button type="submit">Login</button>&nbsp;<a type="button" href="#">Forgot password</a>

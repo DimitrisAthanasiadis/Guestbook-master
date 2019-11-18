@@ -23,6 +23,7 @@
 
       {% for r in result %}
       <form class="form-signin" method="post" action="edit_com_process">
+        {{ form.csrf_token }}
         <h2 class="form-signin-heading">Edit your comment</h2>
         <div class="form-group">
           <label for="inputName" class="sr-only">Name</label>
