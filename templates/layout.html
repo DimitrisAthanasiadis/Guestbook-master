@@ -8,11 +8,11 @@
             <strong><nav>
               <ul class="menu">
                 <li><a href="{{ url_for('index') }}">Home</a></li>
-                  {% if session['logged_in'] %}
-                    {% if session['username'] == 'admin' %}
+                  {% if current_user.is_authenticated %}
+                    {% if current_user.username == 'admin' %}
                     <li><a href="{{ url_for('users_list') }}">Users list</a></li>
                     {% endif %}
-                    <li><a href="/profile/?user={{ session['username'] }}">Profile</a></li>
+                    <li><a href="/profile/?user={{ current_user.username }}">Profile</a></li>
                   {% endif %}
               </ul>
             </nav></strong>

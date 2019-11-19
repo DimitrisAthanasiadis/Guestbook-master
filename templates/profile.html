@@ -1,7 +1,18 @@
 <!DOCTYPE html>
 <html>
 <head>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Bootstrap core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/various_styles.css') }}" rel="stylesheet">
+    <meta charset="UTF-8">
+
 <style>
 .card {
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
@@ -41,19 +52,19 @@ button:hover, a:hover {
 </style>
 </head>
 <body>
+{% extends "layout.html" %}
+{% block content %}
 
 <h2 style="text-align:center">User Profile Card</h2>
-
-{% for r in result %}
   <div class="card">
-    <img src="" alt="Jim" style="width:100%">
-    <h1>{{ r.username }}</h1>
+    <img src="" alt="{{current_user.username}}" style="width:100%">
+    <h1>{{ current_user.username }}</h1>
     <div style="margin: 24px 0;">
       <a href="#"><i class="fa fa-linkedin"></i></a>
       <a href="#"><i class="fa fa-facebook"></i></a>
     </div>
     <p><button>Contact</button></p>
   </div>
-{% endfor %}
+{% endblock %}
 </body>
 </html>
