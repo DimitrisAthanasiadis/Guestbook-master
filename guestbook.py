@@ -29,7 +29,7 @@ app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'jimath3@gmail.com'  # enter your email here
 app.config['MAIL_DEFAULT_SENDER'] = 'jimath3@gmail.com'  # enter your email here
-app.config['MAIL_PASSWORD'] = 'oqrm itmy igfv qlee'  # enter your password here
+app.config['MAIL_PASSWORD'] = 'SeGaMaWpOuStH@@GaMwToSpItIsOu@@'  # enter your password here
 login_manager = fl.LoginManager()
 login_manager.init_app(app)
 csrf = CSRFProtect(app)
@@ -118,12 +118,13 @@ class RegistrationForm(FlaskForm):
         if user is not None:
             raise ValidationError('Please use a different email address.')
 
+
 class EmailForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
 
+
 class PasswordForm(FlaskForm):
     password = PasswordField('Email', validators=[DataRequired()])
-
 
 
 # custom decorator gia na dw an kapoios einai syndedemenos
@@ -258,8 +259,11 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
+        if user.email_confirmed == 0:
+            flash("Account not confirmed", "error")
+            return redirect(url_for("login"))
         if user is None or not user.check_password(form.password.data):
-            flash("Invalid username or password")
+            flash("Invalid username or password", "danger")
             return redirect(url_for('login'))
         fl.login_user(user)  # , remember=form.remember_me.data)
         flash("Logged in successfuly", "success")
@@ -289,6 +293,7 @@ def sign_up_process():
     user = User(username=username, password=password_hash)
     db.session.add(user)
     db.session.commit()
+    db.session.close()
 
     return redirect(url_for('index'))
 
@@ -321,7 +326,7 @@ def register():
         # apla ypothetw oti exw orisei mia function send_email
         send_email(user.email, subject, html)
 
-        flash('Congratulations, you are now a registered user!')
+        flash('Congratulations, you are now a registered user!', "success")
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
@@ -346,7 +351,7 @@ def send_email(user_email, subject, html):
 
 @app.route("/confirm_email/<token>", methods=['GET', 'POST'])
 def confirm_email(token):
-    email = ts.loads(token, salt="email-confirm-key")#, max_age=86400)
+    email = ts.loads(token, salt="email-confirm-key")  # , max_age=86400)
     user = User.query.filter_by(email=email).first_or_404()
     user.email_confirmed = True
     db.session.add(user)
@@ -356,6 +361,12 @@ def confirm_email(token):
     return redirect(url_for("login"))
 
 
+@app.route("/forgot_password", methods=["GET", "POST"])
+def forgot_password():
+    form = EmailForm()
+    return render_template("forgot_password.html", form=form)
+
+
 @app.route('/reset', methods=["GET", "POST"])
 def reset():
     form = EmailForm()
@@ -363,7 +374,6 @@ def reset():
         user = User.query.filter_by(email=form.email.data).first_or_404()
 
         subject = "Password reset requested"
-
         # Here we use the URLSafeTimedSerializer we created in `util` at the
         # beginning of the chapter
         token = ts.dumps(user.email, salt='recover-key')
@@ -379,9 +389,11 @@ def reset():
 
         # Let's assume that send_email was defined in myapp/util.py
         send_email(user.email, subject, html)
+        flash("Recovery email sent", "success")
 
-        return redirect(url_for('index'))
-    return render_template('recover.html', form=form)
+        # return redirect(url_for('index'))
+    return redirect(url_for('login', form=form))
+
 
 @app.route('/reset/<token>', methods=["GET", "POST"])
 def reset_with_token(token):
@@ -395,6 +407,7 @@ def reset_with_token(token):
 
         db.session.add(user)
         db.session.commit()
+        db.session.close()
 
         return redirect(url_for('login'))
 
@@ -413,13 +426,14 @@ def edit_com():
     form = EditComForm()
     com_id = request.args.get('com_id')
     if com_id is None:
-        flash("There was no comment id", "error")
+        flash("There was no comment id", "danger")
         return redirect(url_for('index'))
     session['com_id'] = com_id
     query = text("select * from comments where id=" + str(com_id))
     result = db.engine.execute(query)
     db.engine.execute(query)
     db.session.commit()
+    db.session.close()
 
     # return redirect(url_for('index'))
     return render_template("edit.html", result=result, form=form)
@@ -431,13 +445,14 @@ def edit_com_process():
     # com_id = request.form['com_id']
     com_id = request.form['com_id']
     if com_id is None:
-        flash("There was no comment id", "error")
+        flash("There was no comment id", "danger")
         return redirect(url_for("index"))
     com_cont = request.form['comment']
 
     query = text("update comments set comment = '" + str(com_cont) + "' where id = " + str(com_id))
     db.engine.execute(query)
     db.session.commit()
+    db.session.close()
 
     return redirect(url_for('index'))
 
@@ -465,12 +480,13 @@ def delete_red():
 def delete_ajax():
     com_id = request.args.get('com_id')
     if com_id is None:
-        flash("No comment id provided", "error")
+        flash("No comment id provided", "danger")
         return redirect(url_for("index"))
     query = "delete from comments where id=" + str(com_id)
     session.pop("comment", None)
     db.engine.execute(query)
     db.session.commit()
+    db.session.close()
 
     return jsonify(status="success")
 
@@ -488,6 +504,7 @@ def delete_user_ajax():
     query = "delete from user where id=" + str(u_id)
     db.engine.execute(query)
     db.session.commit()
+    db.session.close()
 
     return jsonify(status="success")
 
@@ -522,6 +539,7 @@ def profile():
     query = "select * from user where username='" + str(fl.current_user.username) + "'"
     db.engine.execute(query)
     db.session.commit()
+    # db.session.close()
 
     return render_template("profile.html", result=query)
 
