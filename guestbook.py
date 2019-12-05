@@ -8,7 +8,7 @@ import flask_login as fl
 from flask_wtf import FlaskForm
 from flask_wtf.csrf import CSRFProtect
 from wtforms import StringField, PasswordField, SubmitField
-from sqlalchemy import text
+from sqlalchemy import text, update
 from wtforms.validators import DataRequired, EqualTo, ValidationError, Email
 from functools import wraps
 from itsdangerous import URLSafeSerializer
@@ -61,6 +61,7 @@ class User(db.Model, fl.UserMixin):
     password = db.Column(db.String(100))
     email = db.Column(db.String(100))
     email_confirmed = db.Column(db.Boolean(), default=False)
+    reset_token = db.Column(db.String(767), default=None)
 
     def __init__(self, username, password, email):
         self.username = username
@@ -121,6 +122,7 @@ class RegistrationForm(FlaskForm):
 
 class EmailForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
+
 
 class PasswordForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
@@ -308,7 +310,8 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, password=generate_password_hash(form.password.data), email=form.email.data)
+        user = User(username=form.username.data, password=generate_password_hash(form.password.data),
+                    email=form.email.data)
         db.session.add(user)
         db.session.commit()
 
@@ -356,6 +359,7 @@ def send_email(user_email, subject, html, body):
 
     thr.start()
 
+
 @app.route("/confirm_email/<token>", methods=['GET', 'POST'])
 def confirm_email(token):
     # form = PasswordForm()
@@ -379,33 +383,39 @@ def forgot_password():
 @app.route('/reset', methods=["GET", "POST"])
 def reset():
     form = EmailForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first_or_404()
+    user = User.query.filter_by(email=form.email.data).first()
+    if user:
+        if user.reset_token is None:
+            if form.validate_on_submit():
+                subject = "Password reset requested"
+                # Here we use the URLSafeTimedSerializer we created in `util` at the
+                # beginning of the chapter
+                token = ts.dumps(user.email, salt='recover-key')
+                stmt = text("update user set reset_token = '" + str(token) + "' where id = " + str(user.id))
+                result = db.engine.execute(stmt)
 
-        subject = "Password reset requested"
-        # Here we use the URLSafeTimedSerializer we created in `util` at the
-        # beginning of the chapter
-        token = ts.dumps(user.email, salt='recover-key')
+                recover_url = url_for(
+                    'reset_with_token',
+                    token=token,
+                    _external=True)
 
-        recover_url = url_for(
-            'reset_with_token',
-            token=token,
-            _external=True)
+                html = render_template(
+                    'reset.html',
+                    recover_url=recover_url)
 
-        html = render_template(
-            'reset.html',
-            recover_url=recover_url)
+                body = "Password request was asked. Use the link provided" + recover_url
 
-        body = "Password request was asked. Use the link provided" + recover_url
-
-        # Let's assume that send_email was defined in myapp/util.py
-        send_email(user.email, subject, html, body)
-        flash("Recovery email sent", "success")
+                # Let's assume that send_email was defined in myapp/util.py
+                send_email(user.email, subject, html, body)
+                flash("Recovery email sent", "success")
+        else:
+            flash("Token is expired or an email has already been sent!", "warning")
+            return redirect(url_for("forgot_password"))
     else:
         flash("Email not found!", "dangerous")
-        return redirect(url_for("login"))
+        return redirect(url_for("forgot_password"))
 
-        # return redirect(url_for('index'))
+    # return redirect(url_for('index'))
     return redirect(url_for('login', form=form))
 
 
@@ -413,18 +423,23 @@ def reset():
 def reset_with_token(token):
     email = ts.loads(token, salt="recover-key")
     form = PasswordForm()
+    user = User.query.filter_by(email=email).first()
 
-    if form.validate_on_submit():
-        user = User.query.filter_by(email=email).first_or_404()
-        user.password = generate_password_hash(form.password.data)
+    if user:
+        if user.reset_token is not None:
+            if form.validate_on_submit():
+                user.password = generate_password_hash(form.password.data)
+                user.reset_token = None
 
-        db.session.add(user)
-        db.session.commit()
-        db.session.close()
-        flash("Password changed successfuly!", "success")
+                db.session.add(user)
+                db.session.commit()
+                db.session.close()
+                flash("Password changed successfuly!", "success")
 
-        return redirect(url_for('login'))
-
+                return redirect(url_for('login'))
+        else:
+            flash("Token is expired!", "warning")
+            return redirect(url_for("login"))
     return render_template('reset_with_token.html', form=form, token=token)
 
 
