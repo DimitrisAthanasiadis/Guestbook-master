@@ -22,14 +22,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://sql7311412:WYksFBCrMk@sql7.free
 app.config['SQL_ALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'memcached'
 app.config['SECRET_KEY'] = 'super secret key'
-app.config['SESSION_PERMANENT'] = True
-app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['SESSION_PERMANENT'] = False
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'jimath3@gmail.com'  # enter your email here
 app.config['MAIL_DEFAULT_SENDER'] = 'jimath3@gmail.com'  # enter your email here
-app.config['MAIL_PASSWORD'] = 'SeGaMaWpOuStH@@GaMwToSpItIsOu@@'  # enter your password here
+app.config['MAIL_PASSWORD'] = 'oqrm itmy igfv qlee'  # enter your password here
 login_manager = fl.LoginManager()
 login_manager.init_app(app)
 csrf = CSRFProtect(app)
@@ -76,7 +76,7 @@ class User(db.Model, fl.UserMixin):
         return self.password_hash
 
     def check_password(self, password):
-        return check_password_hash(self.set_password(password), password)
+        return check_password_hash(self.password, password)
 
     '''def set_username(self, username):
         self.username = username
@@ -122,9 +122,11 @@ class RegistrationForm(FlaskForm):
 class EmailForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
 
-
 class PasswordForm(FlaskForm):
-    password = PasswordField('Email', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    password2 = PasswordField(
+        'Repeat Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Submit')
 
 
 # custom decorator gia na dw an kapoios einai syndedemenos
@@ -259,17 +261,18 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
-        if user.email_confirmed == 0:
-            flash("Account not confirmed", "error")
-            return redirect(url_for("login"))
-        if user is None or not user.check_password(form.password.data):
-            flash("Invalid username or password", "danger")
-            return redirect(url_for('login'))
-        fl.login_user(user)  # , remember=form.remember_me.data)
-        flash("Logged in successfuly", "success")
-        # deixnei popia tha einai h epomenh selida apo thn parousa-meta to login tha thelame thn arxikh, as poume
-        # next = request.args.get('next')
-        return redirect(url_for('index', current_user=fl.current_user))
+        if user:
+            if user.email_confirmed == 0:
+                flash("Account not confirmed. Go to your email to confirm the account!", "error")
+                return redirect(url_for("login"))
+            if not user.check_password(form.password.data):
+                flash("Invalid username or password", "danger")
+                return redirect(url_for('login'))
+            fl.login_user(user)  # , remember=form.remember_me.data)
+            flash("Logged in successfuly", "success")
+            # deixnei popia tha einai h epomenh selida apo thn parousa-meta to login tha thelame thn arxikh, as poume
+            # next = request.args.get('next')
+            return redirect(url_for('index', current_user=fl.current_user))
 
     return render_template('login.html', title='Login', form=form)
 
@@ -301,12 +304,11 @@ def sign_up_process():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if fl.current_user.is_authenticated:
+        flash("You are already registered", "warning")
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, password=form.password.data, email=form.email.data)
-        # user.set_username(form.username.data)
-        user.set_password(form.password.data)
+        user = User(username=form.username.data, password=generate_password_hash(form.password.data), email=form.email.data)
         db.session.add(user)
         db.session.commit()
 
@@ -318,16 +320,21 @@ def register():
             _external=True
         )
 
-        html = render_template(
+        html = ""
+
+        '''render_template(
             "confirm_email.html",
-            confirm_url=confirm_url
-        )
+            confirm_url=confirm_url,
+            form=form
+        )'''
 
-        # apla ypothetw oti exw orisei mia function send_email
-        send_email(user.email, subject, html)
+        body = "Click the link provided to confirm your email " + confirm_url
 
-        flash('Congratulations, you are now a registered user!', "success")
-        return redirect(url_for('login'))
+        send_email(user.email, subject, html, body)
+
+        flash('Congratulations, you are now a registered user! Go to your email to confirm your account!', "success")
+        # return redirect(url_for('login'))
+        return redirect(url_for("index"))
     return render_template('register.html', title='Register', form=form)
 
 
@@ -338,19 +345,21 @@ def async_send_email(app, msg):
 
 
 @app.route("/send_email/?token=<token>", methods=["GET", "POST"])
-def send_email(user_email, subject, html):
+def send_email(user_email, subject, html, body):
     msg = Message(subject, recipients=[user_email])
-    msg.body = html
+    msg.body = body
+    msg.html = html
     '''msg.html = html
     # mail.send(msg)'''
     thr = Thread(target=async_send_email, args=[app, msg])
-    flash("A confirmation link was sent to your inbox", "success")
+    # flash("A confirmation link was sent to your inbox", "success")
 
     thr.start()
 
-
 @app.route("/confirm_email/<token>", methods=['GET', 'POST'])
 def confirm_email(token):
+    # form = PasswordForm()
+    # if form.validate_on_submit():
     email = ts.loads(token, salt="email-confirm-key")  # , max_age=86400)
     user = User.query.filter_by(email=email).first_or_404()
     user.email_confirmed = True
@@ -387,9 +396,14 @@ def reset():
             'reset.html',
             recover_url=recover_url)
 
+        body = "Password request was asked. Use the link provided" + recover_url
+
         # Let's assume that send_email was defined in myapp/util.py
-        send_email(user.email, subject, html)
+        send_email(user.email, subject, html, body)
         flash("Recovery email sent", "success")
+    else:
+        flash("Email not found!", "dangerous")
+        return redirect(url_for("login"))
 
         # return redirect(url_for('index'))
     return redirect(url_for('login', form=form))
@@ -402,12 +416,12 @@ def reset_with_token(token):
 
     if form.validate_on_submit():
         user = User.query.filter_by(email=email).first_or_404()
-
-        user.password = form.password.data
+        user.password = generate_password_hash(form.password.data)
 
         db.session.add(user)
         db.session.commit()
         db.session.close()
+        flash("Password changed successfuly!", "success")
 
         return redirect(url_for('login'))
 

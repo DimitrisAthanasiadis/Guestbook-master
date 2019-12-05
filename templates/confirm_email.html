@@ -9,7 +9,6 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Guest Book</title>
 
     <!-- Bootstrap core CSS -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
@@ -19,14 +18,59 @@
     <!-- Custom styles for this template -->
     <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/various_styles.css') }}" rel="stylesheet">
+
     <title>Confirm email</title>
 </head>
+<style>
+    .form-gap {
+        padding-top: 70px;
+    }
+</style>
 <body>
-    Your account was successfully created. Please click the link below<br>
-    to confirm your email address and activate your account:
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    {% extends "layout.html" %}
+    {% block content %}
+     <div class="form-gap"></div>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 col-md-offset-4">
+                    <div class="panel panel-default">
+                      <div class="panel-body">
+                        <div class="text-center">
+                          <h3><i class="fa fa-lock fa-4x"></i></h3>
+                          <h2 class="text-center">Confirm your email</h2>
+                          <div class="panel-body">
 
-    <p>
-    <a href="{{ confirm_url }}">{{ confirm_url }}</a>
-    </p>
+                            <form id="register-form" role="form" autocomplete="off" class="form" method="post" action="reset">
+                                {{ form.csrf_token }}
+                              <div class="form-group">
+                                <div class="input-group">
+                                  <span class="input-group-addon"><i class="glyphicon glyphicon-envelope color-blue"></i></span>
+                                  <input id="email" name="email" placeholder="email address" class="form-control"  type="email">
+                                </div>
+                              </div>
+                              <div class="form-group">
+                                <input name="recover-submit" class="btn btn-lg btn-primary btn-block" value="Confirm email" type="submit">
+                              </div>
+
+                              <input type="hidden" class="hide" name="token" id="token" value="">
+                            </form>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+            </div>
+        </div>
+
+        <script>
+          window.setTimeout(function() {
+            $(".alert").fadeTo(500, 0).slideUp(500, function(){
+              $(this).remove();
+             });
+          }, 2000);
+        </script>
+        {% endblock %}
 </body>
 </html>
