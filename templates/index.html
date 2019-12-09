@@ -62,12 +62,18 @@
         {% for r in result %}
         <!-- <form method="post" action="/delete_red/?id={{ r.id }}"> -->
         <!-- <form method="post" action="/edit_com_process/?com_id={{ r.id }}&com_cont={{ r.comment }}" id="com_form"> -->
-        <form method="post" action="edit_com" id="com_form">
+        <form method="post" action="edit_com" id="com_form"></form>
+          {% if current_user.is_authenticated and (r.name == current_user.username or current_user.username == 'admin') %}
+            <button type="button" class="delete_many">Delete selected comments</button>
+          {% endif %}
             <div class="page-header">
               <h1>{{ r.name }}</h1><!-- <a id="delete_com" name="delete" href=#>Delete comment</a> -->
                 {% if current_user.is_authenticated and (r.name == current_user.username or current_user.username == 'admin') %}
                     <button data-id="{{ r.id }}" type="button" class="delete_com">Delete comment</button>
                     <button type="button" class="edit_com" id="{{ r.id }}" onclick="editComment(this.id)">Edit comment</button>
+                    {% if current_user.is_authenticated and (current_user.username == 'admin') %}
+                      <input type="checkbox" name="{{ r.id }}"/>
+                    {% endif %}
                 {% endif %}
             </div>
             <div class="well" name="com_cont">

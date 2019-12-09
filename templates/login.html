@@ -37,13 +37,13 @@
         <button type="submit">Login</button>&nbsp;<a type="button" href="{{ url_for('forgot_password') }}">Forgot password</a>
     </form>
 
-    <script>
-      window.setTimeout(function() {
-        $(".alert").fadeTo(500, 0).slideUp(500, function(){
-          $(this).remove();
-         });
-      }, 2000);
-    </script>
+   <script>
+        window.setTimeout(function() {
+          $(".alert").fadeTo(500, 0).slideUp(500, function(){
+            $(this).remove();
+           });
+        }, 2000);
+      </script>
 {% endblock %}
 </body>
 </html>

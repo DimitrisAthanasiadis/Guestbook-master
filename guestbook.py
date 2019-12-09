@@ -77,7 +77,7 @@ class User(db.Model, fl.UserMixin):
 		return self.password_hash
 
 	def check_password(self, password):
-		return check_password_hash(self.set_password(password), password)
+		return check_password_hash(self.password, password)
 
 	'''def set_username(self, username):
 		self.username = username
@@ -275,7 +275,8 @@ def login():
 			# deixnei popia tha einai h epomenh selida apo thn parousa-meta to login tha thelame thn arxikh, as poume
 			# next = request.args.get('next')
 			return redirect(url_for('index', current_user=fl.current_user))
-
+		else:
+			flash("User does not exist!", "warning")
 	return render_template('login.html', title='Login', form=form)
 
 
@@ -525,8 +526,13 @@ def delete_ajax():
 
 	return jsonify(status="success")
 
-
-# return redirect(url_for('index'))
+@app.route('delete_coms_ajax', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def delete_coms_ajax():
+	if request.form.getlist(""):
+		Comments.query.filter(Comments.com_id.in_(request.form[''])).delete()
+		db.session.commit()
 
 @app.route('/delete_user_ajax', methods=['GET', 'POST'])
 @login_required
