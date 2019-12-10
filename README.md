@@ -6,3 +6,5 @@ Form handling with flask, AJAX and jQuery: https://youtu.be/IZWtHsM3Y5A
 Flask-Login user handling: https://realpython.com/using-flask-login-for-user-management-with-flask/
 
 Flask-Login usage: https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-v-user-logins
+
+Server/Database initialization file: https://drive.google.com/open?id=1PdXf-gJLPtvOCZpE0PNdWAuHXIZhnSOWJcJNK9gn-VM
