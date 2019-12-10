@@ -13,6 +13,9 @@
                     <li><a href="{{ url_for('users_list') }}">Users list</a></li>
                     {% endif %}
                     <li><a href="/profile/?user={{ current_user.username }}">Profile</a></li>
+                    <li><a type="button" name="logout" href="{{ url_for('logout') }}">Logout</a></li>
+                  {% else %}
+                    <li><a type="button" href="{{ url_for('login') }}">Login</a>&nbsp;</li>
                   {% endif %}
               </ul>
             </nav></strong>

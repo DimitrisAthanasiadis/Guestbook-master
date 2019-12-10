@@ -65,7 +65,7 @@ class User(db.Model, fl.UserMixin):
 
 	def __init__(self, username, password, email):
 		self.username = username
-		self.password = self.set_password(password)
+		self.set_password(password)
 		self.email = email
 		self.password_hash = None
 		# self.is_authenticated = False
@@ -74,7 +74,7 @@ class User(db.Model, fl.UserMixin):
 
 	def set_password(self, password):
 		self.password_hash = generate_password_hash(password)
-		return self.password_hash
+		self.password = self.password_hash
 
 	def check_password(self, password):
 		return check_password_hash(self.password, password)
@@ -199,14 +199,6 @@ def comment_process():
 
 @login_manager.user_loader
 def user_loader(id):
-	'''exists = db.session.query(db.session.query(Users).filter_by(username=username).exists()).scalar()
-
-	if not exists:
-		#flash("Invalid credentials", "error")
-		return
-
-	user = Users()
-	user.username = username'''
 	return User.query.get(str(id))
 
 
@@ -229,7 +221,7 @@ def request_loader(request):
 
 	return user'''
 
-
+# den doulevw me session pleon opote den xreiazetai
 @app.route('/login_process', methods=['POST'])
 def login_process():
 	error = None
@@ -251,9 +243,6 @@ def login_process():
 	flash("Successful login", "success")
 
 	return redirect(url_for("index"))
-
-
-# return redirect(url_for("login"))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -311,8 +300,8 @@ def register():
 		return redirect(url_for('index'))
 	form = RegistrationForm()
 	if form.validate_on_submit():
-		user = User(username=form.username.data, password=generate_password_hash(form.password.data),
-					email=form.email.data)
+		user = User(username=request.form.get("username"), password=request.form.get("password"),
+					email=request.form.get("email"))
 		db.session.add(user)
 		db.session.commit()
 
@@ -449,6 +438,7 @@ def reset_with_token(token):
 
 
 @app.route("/logout")
+@login_required
 def logout():
 	fl.logout_user()
 	return redirect(url_for("index"))
@@ -464,13 +454,9 @@ def edit_com():
 		return redirect(url_for('index'))
 	session['com_id'] = com_id
 	query = text("select * from comments where id=" + str(com_id))
-	result = db.engine.execute(query)
-	db.engine.execute(query)
-	db.session.commit()
-	db.session.close()
+	comment = Comments.query.filter_by(id=com_id).first()
 
-	# return redirect(url_for('index'))
-	return render_template("edit.html", result=result, form=form)
+	return render_template("edit.html", name=comment.name, comment=comment.comment, id=comment.id, form=form)
 
 
 @app.route("/edit_com/edit_com_process", methods=['GET', 'POST'])
@@ -483,10 +469,8 @@ def edit_com_process():
 		return redirect(url_for("index"))
 	com_cont = request.form['comment']
 
-	query = text("update comments set comment = '" + str(com_cont) + "' where id = " + str(com_id))
-	db.engine.execute(query)
-	db.session.commit()
-	db.session.close()
+	comment = Comments.query.filter_by(id=com_id).first()
+	comment.comment = com_cont
 
 	return redirect(url_for('index'))
 
@@ -526,13 +510,22 @@ def delete_ajax():
 
 	return jsonify(status="success")
 
-@app.route('delete_coms_ajax', methods=['GET', 'POST'])
-@login_required
+@app.route('/delete_coms_ajax', methods=['GET', 'POST'])
 @admin_required
 def delete_coms_ajax():
-	if request.form.getlist(""):
-		Comments.query.filter(Comments.com_id.in_(request.form[''])).delete()
-		db.session.commit()
+	sel_comments = request.args.getlist("sel_comments[]")
+	if len(sel_comments) == 0:
+		flash("No comments selected", "error")
+		return redirect(url_for("index"))
+	else:
+		for i in sel_comments:
+			comment = Comments.query.filter_by(id=int(i)).first()
+			if comment is None:
+				flash("No comment id provided", "danger")
+				return redirect(url_for("index"))
+			db.session.query(Comments).filter(Comments.id == int(i)).delete(synchronize_session='evaluate')
+			db.session.commit()
+	return jsonify(status="success")
 
 @app.route('/delete_user_ajax', methods=['GET', 'POST'])
 @login_required
@@ -579,12 +572,7 @@ def display_users():
 @app.route("/profile/", methods=['GET', 'POST'])
 @login_required
 def profile():
-	query = "select * from public.user where username='" + str(fl.current_user.username) + "'"
-	db.engine.execute(query)
-	db.session.commit()
-	# db.session.close()
-
-	return render_template("profile.html", result=query)
+	return render_template("profile.html")
 
 
 # <VARIABLE_NAME> is a variable that is passed through the URL bar

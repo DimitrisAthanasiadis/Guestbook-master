@@ -43,7 +43,7 @@
       <!-- <a type="button" class="btn btn-link" name="home" href="{{ url_for('index') }}">Home</a> -->
       {% if current_user.is_authenticated %}
         <span class="w3-padding w3-display-topleft" style="font-weight:bold;color:green">Logged in as
-          {{ current_user.username }}</span>&nbsp;<a type="button" class="btn btn-link" name="logout" href="{{ url_for('logout') }}">Logout</a>
+          {{ current_user.username }}</span>&nbsp;
       {% endif %}
       <div class="container theme-showcase" role="main" id="container-div">
 
@@ -54,25 +54,25 @@
                 <button type="button" id="show_sign_form" onclick="showModalSign()">Sign the guest book</button>&nbsp
             {% endif %}
             {% if not current_user.is_authenticated %}
-            <a type="button" class="btn btn-link" href="{{ url_for('login') }}">Login</a>&nbsp;
+
             <a type="button" class="btn btn-link" href="{{ url_for('register') }}">Sign up</a>
             {% endif %}
         </div>
-
+        {% if current_user.is_authenticated and (current_user.username == 'admin') %}
+            <button type="button" class="del_comms">Delete selected comments</button>
+            <button type="button" class="select_all">Select all comments</button>
+        {% endif %}
         {% for r in result %}
         <!-- <form method="post" action="/delete_red/?id={{ r.id }}"> -->
         <!-- <form method="post" action="/edit_com_process/?com_id={{ r.id }}&com_cont={{ r.comment }}" id="com_form"> -->
         <form method="post" action="edit_com" id="com_form"></form>
-          {% if current_user.is_authenticated and (r.name == current_user.username or current_user.username == 'admin') %}
-            <button type="button" class="delete_many">Delete selected comments</button>
-          {% endif %}
             <div class="page-header">
               <h1>{{ r.name }}</h1><!-- <a id="delete_com" name="delete" href=#>Delete comment</a> -->
                 {% if current_user.is_authenticated and (r.name == current_user.username or current_user.username == 'admin') %}
                     <button data-id="{{ r.id }}" type="button" class="delete_com">Delete comment</button>
                     <button type="button" class="edit_com" id="{{ r.id }}" onclick="editComment(this.id)">Edit comment</button>
                     {% if current_user.is_authenticated and (current_user.username == 'admin') %}
-                      <input type="checkbox" name="{{ r.id }}"/>
+                      <input type="checkbox" value="{{ r.id }}" name="comments"/>
                     {% endif %}
                 {% endif %}
             </div>
@@ -122,6 +122,50 @@
               }
             });
           });
+        });
+      </script>
+
+      <script>
+        $(document).ready(function() {
+
+          $(".del_comms").click(function(){
+
+            var favorite = [];
+
+            $.each($("input[name='comments']:checked"), function(){
+
+                favorite.push($(this).val());
+            });
+            $.ajax({
+              type: 'GET',
+              url: "/delete_coms_ajax",
+              data: {sel_comments: favorite},
+              //eftaige to datatype. to default edw einai json epeidh etsi to epistrefei h python
+              //dataType: "application/json",
+              //se ayto to epipedo tha valw .load() apo to jquery
+              success: function(data){
+                debugger;
+                if(data.status == "success"){
+                  //to kanw load sto body giati an to kanw opoudhpote allou tha ksanafortwsei to nav bar mexri na ksanaginei reload
+                  $("body").load("/");
+                }
+              }
+            });
+
+
+            //alert("List of selected comments: " + favorite.join(", "));
+
+            }
+
+         )});
+      </script>
+
+      <script>
+        $(document).ready(function(){
+          $(".select_all").click(function(){
+            $('input[type=checkbox]').each(function() { this.checked = true; });
+          }
+          );
         });
       </script>
 

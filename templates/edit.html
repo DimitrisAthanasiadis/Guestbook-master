@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,37 +9,38 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>Sign the Guest Book</title>
-
     <!-- Bootstrap core CSS -->
     <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="{{ url_for('static', filename='css/bootstrap-theme.min.css') }}" rel="stylesheet">
 
     <!-- Custom styles for this template -->
-    <link href="{{ url_for('static', filename='css/sign.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/theme.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/various_styles.css') }}" rel="stylesheet">
+
+    <title>Edit comment</title>
   </head>
 
   <body>
-
+    {% extends "layout.html" %}
+    {% block content %}
     <div class="container">
-
-      {% for r in result %}
       <form class="form-signin" method="post" action="edit_com_process">
         {{ form.csrf_token }}
         <h2 class="form-signin-heading">Edit your comment</h2>
         <div class="form-group">
           <label for="inputName" class="sr-only">Name</label>
-          <input type="text" id="inputName" name="name" class="form-control" placeholder="Name" value="{{ r.name }}" required autofocus readonly>
+          <input type="text" id="inputName" name="name" class="form-control" placeholder="Name" value="{{ name }}" required autofocus readonly>
         </div>
         <div class="form-group">
           <label for="comment" class="sr-only">Comment:</label>
-            <textarea class="form-control" rows="5" id="comment" name="comment" placeholder="Comment" required>{{ r.comment }}</textarea>
+            <textarea class="form-control" rows="5" id="comment" name="comment" placeholder="Comment" required>{{ comment }}</textarea>
         </div>
-        <input type="hidden" value="{{ r.id }}" name="com_id"/>
+        <input type="hidden" value="{{ id }}" name="com_id"/>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Edit</button>
       </form>
-      {% endfor %}
 
     </div> <!-- /container -->
-
+    {% endblock %}
   </body>
 </html>
