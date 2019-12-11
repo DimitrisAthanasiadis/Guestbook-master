@@ -18,7 +18,7 @@ sess = Session()
 app = Flask(__name__)
 # how sqlalchemy connects to the database
 # connect string configuration "dialect+driver://username:password@host:port/database"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:abc-123@localhost:5432/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:abc-123@localhost:5432/comments_app_flask'
 app.config['SQL_ALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'memcached'
 app.config['SECRET_KEY'] = 'super secret key'
