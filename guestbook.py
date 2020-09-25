@@ -18,7 +18,7 @@ sess = Session()
 app = Flask(__name__)
 # how sqlalchemy connects to the database
 # connect string configuration "dialect+driver://username:password@host:port/database"
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:abc-123@localhost:5432/comments_app_flask'
+app.config['SQLALCHEMY_DATABASE_URI'] = ''
 app.config['SQL_ALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SESSION_TYPE'] = 'memcached'
 app.config['SECRET_KEY'] = 'super secret key'
@@ -27,9 +27,9 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'jimath3@gmail.com'  # enter your email here
-app.config['MAIL_DEFAULT_SENDER'] = 'jimath3@gmail.com'  # enter your email here
-app.config['MAIL_PASSWORD'] = 'oqrm itmy igfv qlee'  # enter your password here
+app.config['MAIL_USERNAME'] = ''  # enter your email here
+app.config['MAIL_DEFAULT_SENDER'] = ''  # enter your email here
+app.config['MAIL_PASSWORD'] = ''  # enter your password here
 login_manager = fl.LoginManager()
 login_manager.init_app(app)
 csrf = CSRFProtect(app)
