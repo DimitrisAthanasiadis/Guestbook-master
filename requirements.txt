@@ -56,7 +56,7 @@ venusian==1.2.0
 waitress==2.1.2
 wcwidth==0.1.7
 WebOb==1.8.5
-Werkzeug==0.16.0
+Werkzeug==2.2.3
 WTForms==2.2.1
 zipp==0.6.0
 zope.deprecation==4.4.0
